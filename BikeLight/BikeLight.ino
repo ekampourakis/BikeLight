@@ -4,12 +4,45 @@
  Author:	Manos
 */
 
-// the setup function runs once when you press reset or power the board
-void setup() {
+#define HighBeamButton 2	// D2 A1
+#define LowBeamButton 3		// D3 A3
+#define BatteryPin 5		// D5 A0
+#define HighBeamPin 0	// D0 PWM0
+#define LowBeamPin 1	// D1 PWM1
+#define LEDPin 4		// D4 PWM4
 
+void PinModes() {
+	pinMode(HighBeamButton, INPUT);
+	digitalWrite(HighBeamButton, HIGH);
+	pinMode(LowBeamButton, INPUT);
+	digitalWrite(LowBeamButton, HIGH);
+	pinMode(BatteryPin, INPUT);
+	pinMode(HighBeamPin, OUTPUT);
+	analogWrite(HighBeamPin, 0);
+	pinMode(LowBeamPin, OUTPUT);
+	analogWrite(LowBeamPin, 0);
+	pinMode(LEDPin, OUTPUT);
+	digitalWrite(LEDPin, LOW);
 }
 
-// the loop function runs over and over again until power down or reset
+void setup() {
+	// Setup pins
+	PinModes();
+}
+
+byte ReadBattery() {
+	return 0;
+}
+
 void loop() {
-  
+	// Async LED blink based on battery level
+	// Power off on low battery and fast LED blink
+
+	// High beam output wired to high beam button state
+	// High beam lock with 2 sec press
+	// High beam unlock with press
+
+	// Low beam state change based on toggle state
+
+	// Somehow brightness control and menu on secret combination
 }
