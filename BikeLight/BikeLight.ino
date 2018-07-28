@@ -5,6 +5,7 @@
 */
 
 #define DEBUG
+#define WelcomeMessage "BikeLight Ready"
 
 #define BatteryPin		A0	// D5 A0		A0
 #define LowBeamButton	A3	// D3 A3		A3
@@ -64,6 +65,7 @@ void setup() {
 	PinModes();
 	#ifdef DEBUG
 		Serial.begin(9600);
+		Serial.println(WelcomeMessage)
 	#endif
 }
 
@@ -164,7 +166,7 @@ void ProcessButtons() {
 				Serial.println("High beam toggle");
 				#ifdef DEBUG
 					Serial.print("High beams toggle ( ");
-					Serial.println(HighBeam ? "ON )", "OFF )");
+					Serial.println(HighBeam ? "ON )" : "OFF )");
 				#endif
 			}
 		}
