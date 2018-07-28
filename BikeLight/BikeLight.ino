@@ -33,6 +33,7 @@ unsigned long LastMenuBlink = 0;
 
 bool LowBeam = false;
 bool HighBeam = false;
+bool TempHighBeam = false;
 
 #define LowBeamToggleDelay 1000
 #define HighBeamToggleDelay 1000
@@ -119,6 +120,11 @@ void ProcessButtons() {
 	
 	bool LowBeamState = digitalRead(LowBeamButton);
 	bool HighBeamState = digitalRead(HighBeamButton);
+	TempHighBeam = (HighBeamState == ButtonLogic);
+
+	if (HighBeam && HighBeamState == ButtonLogic) {
+		HighBeam = false;
+	}
 
 	if (HighBeamState != ButtonLogic) {
 		if (LowBeamState != LastLowBeamState) {
@@ -159,7 +165,13 @@ void loop() {
 		MenuBlink();
 	}
 	ProcessButtons();
-	digitalWrite(HighBeamPin, HighBeam);
+	
+	if (TempHighBeam) {
+		digitalWrite(HighBeamPin, true);
+	} else {
+		digitalWrite(HighBeamPin, HighBeam);
+	}
+	
 	// Async LED blink based on battery level
 	// Power off on low battery and fast LED blink
 
