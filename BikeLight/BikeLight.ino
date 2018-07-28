@@ -4,12 +4,16 @@
  Author:	Manos
 */
 
-#define HighBeamButton A4	// D2 A1		A4
-#define LowBeamButton A3	// D3 A3		A3
-#define BatteryPin A0		// D5 A0		A0
-#define HighBeamPin 5		// D0 PWM0		D5
-#define LowBeamPin 6		// D1 PWM1		D6
-#define LEDPin 3			// D4 PWM4		D3
+#define DEBUG
+
+#define BatteryPin		A0	// D5 A0		A0
+#define LowBeamButton	A3	// D3 A3		A3
+#define HighBeamButton	A4	// D2 A1		A4
+#define LEDPin			3	// D4 PWM4		D3
+#define HighBeamPin		5	// D0 PWM0		D5
+#define LowBeamPin		6	// D1 PWM1		D6
+
+#define ButtonLogic false
 
 #define ChargedVoltage 420
 #define DischargedVoltage 310
@@ -19,32 +23,30 @@
 #define BatteryBlinkDelay 500
 #define LowBatteryDelay 200
 #define MaximumBatteryBlinks 4
-bool LowBattery = false;
-uint8_t BatteryLevel = 0;	// 0-100%
-unsigned long LastBatteryBlink = 0;
-unsigned long LastLowBatteryBlink = 0;
-uint8_t BlinksLeft = 0;
-bool LEDState = false;
-bool Menu = false;
-unsigned long LastMenuBlink = 0;
 #define MenuBlinkDelay 500
 
-#define ButtonLogic false
+#define LowBeamToggleDelay 1000
+#define HighBeamToggleDelay 1000
+#define MenuToggleDelay 2000
 
 bool LowBeam = false;
 bool HighBeam = false;
 bool TempHighBeam = false;
-
-#define LowBeamToggleDelay 1000
-#define HighBeamToggleDelay 1000
-
-unsigned long LastLowBeamPress = 0;
-unsigned long LastHighBeamPress = 0;
+bool LowBattery = false;
+bool LEDState = false;
+bool Menu = false;
 
 bool LastLowBeamState = true;
 bool LastHighBeamState = true;
 
-#define MenuToggleInterval 2000
+uint8_t BatteryLevel = 0;	// 0-100%
+uint8_t BlinksLeft = 0;
+
+unsigned long LastBatteryBlink = 0;
+unsigned long LastLowBatteryBlink = 0;
+unsigned long LastMenuBlink = 0;
+unsigned long LastLowBeamPress = 0;
+unsigned long LastHighBeamPress = 0;
 
 void PinModes() {
 	pinMode(HighBeamButton, INPUT_PULLUP);
@@ -60,7 +62,9 @@ void PinModes() {
 
 void setup() {
 	PinModes();
-	Serial.begin(9600);
+	#ifdef DEBUG
+		Serial.begin(9600);
+	#endif
 }
 
 void CheckBattery() {
@@ -77,11 +81,19 @@ void CheckBattery() {
 	} else if (BatteryLevel > 100) {
 		BatteryLevel = 100;
 	}
+	#ifdef DEBUG
+		Serial.print("Battery pack at\t");
+		Serial.print(BatteryVoltage * 2);
+		Serial.print("V and at\t");
+		Serial.print(BatteryLevel);
+		Serial.println("%");
+	#endif
 }
 
 void BatteryBlink() {
 	unsigned long Current = millis();
 	if (LowBattery && Current > LastLowBatteryBlink + LowBatteryDelay) {
+		CheckBattery();
 		LEDState = !LEDState;
 		digitalWrite(LEDPin, LEDState);
 		LastLowBatteryBlink = Current;
@@ -115,17 +127,16 @@ void MenuBlink() {
 }
 
 void ProcessButtons() {
-	unsigned long Current = millis();
-
-	
+	unsigned long Current = millis();	
 	bool LowBeamState = digitalRead(LowBeamButton);
 	bool HighBeamState = digitalRead(HighBeamButton);
 	TempHighBeam = (HighBeamState == ButtonLogic);
-
 	if (HighBeam && HighBeamState == ButtonLogic) {
 		HighBeam = false;
+		#ifdef DEBUG
+			Serial.println("High beams interrupt");
+		#endif
 	}
-
 	if (HighBeamState != ButtonLogic) {
 		if (LowBeamState != LastLowBeamState) {
 			LastLowBeamPress = Current;
@@ -134,12 +145,14 @@ void ProcessButtons() {
 			if (LowBeamState == ButtonLogic) {
 				LastLowBeamPress = Current;
 				LowBeam = !LowBeam;
-				Serial.println("Low beam toggle");
+				#ifdef DEBUG
+					Serial.print("Low beams toggle ( ");
+					Serial.println(LowBeam ? "ON )" : "OFF )");
+				#endif
 			}
 		}
 		LastLowBeamState = LowBeamState;
 	}
-
 	if (LowBeamState != ButtonLogic) {
 		if (HighBeamState != LastHighBeamState) {
 			LastHighBeamPress = Current;
@@ -149,13 +162,14 @@ void ProcessButtons() {
 				LastHighBeamPress = Current;
 				HighBeam = !HighBeam;
 				Serial.println("High beam toggle");
+				#ifdef DEBUG
+					Serial.print("High beams toggle ( ");
+					Serial.println(HighBeam ? "ON )", "OFF )");
+				#endif
 			}
 		}
 		LastHighBeamState = HighBeamState;
 	}
-
-
-
 }
 
 void loop() {
@@ -164,22 +178,11 @@ void loop() {
 	} else {
 		MenuBlink();
 	}
-	ProcessButtons();
-	
+	ProcessButtons();	
 	if (TempHighBeam) {
 		digitalWrite(HighBeamPin, true);
 	} else {
 		digitalWrite(HighBeamPin, HighBeam);
 	}
-	
-	// Async LED blink based on battery level
-	// Power off on low battery and fast LED blink
-
-	// High beam output wired to high beam button state
-	// High beam lock with 2 sec press
-	// High beam unlock with press
-
-	// Low beam state change based on toggle state
-
 	// Somehow brightness control and menu on secret combination
 }
